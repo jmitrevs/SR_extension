@@ -2,7 +2,7 @@
 #define NNET_UPSAMPLE_STREAM_H_
 
 #include "nnet_common.h"
-#include "hls_stream.h"
+#include "ac_channel.h"
 
 namespace nnet {
     
@@ -15,8 +15,8 @@ struct upsample_channels_config
 
 template<class datain_T, class dataout_T, typename CONFIG_T>
 void upsample_channels(
-    hls::stream<datain_T> &image,
-    hls::stream<dataout_T> &resized
+    ac_channel<datain_T> &image,
+    ac_channel<dataout_T> &resized
 ) {
 	assert(dataout_T::size % datain_T::size == 0);
 	constexpr unsigned ratio = dataout_T::size / datain_T::size;

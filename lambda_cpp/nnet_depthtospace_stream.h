@@ -2,7 +2,7 @@
 #define NNET_DEPTHTOSPACE_STREAM_H_
 
 #include "nnet_common.h"
-#include "hls_stream.h"
+#include "ac_channel.h"
 
 namespace nnet {
 
@@ -19,8 +19,8 @@ struct depth_to_space_config
 
 template<class datain_T, class dataout_T, typename CONFIG_T>
 void depth_to_space(
-    hls::stream<datain_T> &image,
-    hls::stream<dataout_T> &resized
+    ac_channel<datain_T> &image,
+    ac_channel<dataout_T> &resized
 ) {
     constexpr unsigned bssq = CONFIG_T::block_size * CONFIG_T::block_size;
 	assert(datain_T::size % bssq == 0);

@@ -26,7 +26,9 @@ TARGET_ARCH = linux64
 INCDIR :=
 INCDIR += -I$(MODEL_DIR)/py
 INCDIR += -I$(MODEL_DIR)/firmware/nnet_utils/
-INCDIR += -I$(MODEL_DIR)/firmware/ap_types/
+INCDIR += -I$(MODEL_DIR)/firmware/ac_types/include
+INCDIR += -I$(MODEL_DIR)/firmware/ac_math/include
+INCDIR += -I$(MODEL_DIR)/firmware/ac_simutils/include
 INCDIR += -I$(MODEL_DIR)/firmware
 INCDIR += -I$(MODEL_DIR)/firmware/weights
 INCDIR += -I$(XILINX_VIVADO)/include
@@ -41,7 +43,7 @@ CXX_FLAGS += -Wno-unused-label
 CXX_FLAGS += -Wno-sign-compare
 CXX_FLAGS += -Wno-unused-variable
 CXX_FLAGS += -Wno-narrowing
-CXX_FLAGS += -std=c++11
+CXX_FLAGS += -std=c++17
 CXX_FLAGS += -O3
 
 # Define the following MACROs to load weights/biases from file.
@@ -86,7 +88,7 @@ $(MODEL): $(CXX_OBJECTS)
 	$(QUIET_CXX)$(CXX) $(CXX_FLAGS) ${INCDIR} -c $<
 
 run: $(MODEL)
-	$(QUIET_RUN)./$(MODEL) | tee run.log
+	$(QUIET_RUN)./$(MODEL) $(MODEL_DIR)/firmware/weights $(MODEL_DIR)/tb_data/tb_input_features.dat $(MODEL_DIR)/tb_data/tb_output_predictions.dat  | tee run.log
 .PHONY: run
 
 generate-image: trim-trailing-space dat2jpg

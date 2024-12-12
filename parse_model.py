@@ -146,7 +146,7 @@ def register_lambda_layer():
     hls4ml.model.layers.register_layer('Upsample', Upsample)
     hls4ml.model.layers.register_layer('DepthToSpace', DepthToSpace)
 
-    backend = hls4ml.backends.get_backend("Vitis")
+    backend = hls4ml.backends.get_backend("Catapult")
 
     # Register template passes for the given backend
     backend.register_template(UpsampleConfigTemplate)
@@ -167,9 +167,9 @@ def parse_model():
     model.summary()
 
     config = hls4ml.utils.config_from_keras_model (model,
-                                                   default_precision = 'ap_fixed<16,10>',
+                                                   default_precision = 'fixed<16,10>',
                                                    granularity = 'name',
-                                                   backend='Vitis')
+                                                   backend='Catapult')
 
 
     #strategy = "Latency"
@@ -181,11 +181,16 @@ def parse_model():
     for layer in config["LayerName"]:
         config["LayerName"][layer]['ReuseFactor'] = rf
         config["LayerName"][layer]["Strategy"] = strategy
-    config["LayerName"]["input_1"]["Precision"] = 'ap_uint<8>'
+    config["LayerName"]["input_1"]["Precision"] = 'ufixed<8,8>'
     config["LayerName"]["clone_input_1"] = {}
-    config["LayerName"]["clone_input_1"]["Precision"] = 'ap_uint<8>'
-    config["LayerName"]["lambda_2"]["Precision"] = 'ap_ufixed<8,8,AP_RND_CONV, AP_SAT>'
+    config["LayerName"]["clone_input_1"]["Precision"] = 'ufixed<8,8>'
+    config["LayerName"]["lambda_2"]["Precision"] = 'ufixed<8,8,AP_RND_CONV, AP_SAT>'
     # config['Flows'] = ['vivado:fifo_depth_optimization']
+
+    # kind of an ugly hack since relu doesn't seem to support ac_ints:
+    for configval in config['LayerName'].values():
+        if isinstance(configval['Precision'], dict) and configval['Precision']['result'] == 'uint<5>':
+            configval['Precision']['result'] = 'ufixed<5,5>'
 
     print(config)
 
@@ -195,16 +200,16 @@ def parse_model():
     hls_model = hls4ml.converters.convert_from_keras_model(model,
                                                            hls_config = config,
                                                            io_type = 'io_stream',
-                                                           output_dir = f'test_model_{BITS}_{strategy}_rf{rf}_fifo',
+                                                           output_dir = f'test_model',
                                                            input_data_tb=str(test_root_path / "csim/tb_data/tb_input_features.dat"),
                                                            output_data_tb=str(test_root_path / "csim/tb_data/tb_output_predictions.dat"),
                                                            part='xcvu9p-flgc2104-2L-e',
-                                                           backend='Vitis'
+                                                           backend='Catapult'
                                                            )
 
 
     hls_model.compile()
-    hls_model.build(csim=False)
+    # hls_model.build(csim=False)
 
 if __name__ == "__main__":
     parse_model()
