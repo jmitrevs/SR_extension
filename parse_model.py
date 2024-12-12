@@ -146,7 +146,7 @@ def register_lambda_layer():
     hls4ml.model.layers.register_layer('Upsample', Upsample)
     hls4ml.model.layers.register_layer('DepthToSpace', DepthToSpace)
 
-    backend = hls4ml.backends.get_backend("Vivado")
+    backend = hls4ml.backends.get_backend("Vitis")
 
     # Register template passes for the given backend
     backend.register_template(UpsampleConfigTemplate)
@@ -168,7 +168,9 @@ def parse_model():
 
     config = hls4ml.utils.config_from_keras_model (model,
                                                    default_precision = 'ap_fixed<16,10>',
-                                                   granularity = 'name')
+                                                   granularity = 'name',
+                                                   backend='Vitis')
+
 
     #strategy = "Latency"
     strategy = "Resource"
@@ -183,7 +185,7 @@ def parse_model():
     config["LayerName"]["clone_input_1"] = {}
     config["LayerName"]["clone_input_1"]["Precision"] = 'ap_uint<8>'
     config["LayerName"]["lambda_2"]["Precision"] = 'ap_ufixed<8,8,AP_RND_CONV, AP_SAT>'
-    config['Flows'] = ['vivado:fifo_depth_optimization']
+    # config['Flows'] = ['vivado:fifo_depth_optimization']
 
     print(config)
 
@@ -196,7 +198,8 @@ def parse_model():
                                                            output_dir = f'test_model_{BITS}_{strategy}_rf{rf}_fifo',
                                                            input_data_tb=str(test_root_path / "csim/tb_data/tb_input_features.dat"),
                                                            output_data_tb=str(test_root_path / "csim/tb_data/tb_output_predictions.dat"),
-                                                           part='xcvu9p-flgc2104-2L-e'
+                                                           part='xcvu9p-flgc2104-2L-e',
+                                                           backend='Vitis'
                                                            )
 
 
